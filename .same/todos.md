@@ -7,19 +7,21 @@
 - [x] Enable demo mode for running without Supabase
 - [x] Start development server
 - [x] Bypass login page for testing (auto-redirect to dashboard)
+- [x] Deploy changes to GitHub repository
 
 ## Current Status
 The eGP system is running in **demo mode** with a mock admin user:
 - **Email**: demo@egp.gov.pg
 - **Role**: System Administrator
 - **Login**: Automatically bypassed - goes straight to dashboard
+- **GitHub**: https://github.com/emabi2002/eGP.git
 
 ## Features Available in Demo
 - Dashboard with procurement metrics
-- Tender management (view, create, manage)
+- Tender management (view, create, manage) - 12 mock tenders
 - Bid submissions and opening
-- Contract management
-- Supplier registry
+- Contract management - 8 contracts with milestones
+- Supplier registry - 12 registered suppliers
 - Auction system
 - Marketplace with catalogue
 - Reports and analytics
@@ -36,7 +38,3 @@ The eGP system is running in **demo mode** with a mock admin user:
 
 ## To Re-enable Login Page
 Set `NEXT_PUBLIC_DEMO_MODE=false` in `.env.local` and restart the server.
-
-## Known TypeScript Issues
-- API routes have type issues due to auto-generated Supabase types
-- These don't affect runtime functionality

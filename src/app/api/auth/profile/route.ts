@@ -1,4 +1,4 @@
-// @ts-nocheck - Supabase types require schema generation
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
@@ -58,6 +58,7 @@ export async function POST(request: Request) {
     const body = await request.json();
 
     // Create or update user profile in users table
+    // @ts-ignore - Supabase types are auto-generated
     const { data: profile, error: profileError } = await supabase
       .from('users')
       .upsert({
@@ -100,6 +101,7 @@ export async function PUT(request: Request) {
     const body = await request.json();
 
     // Update user profile
+    // @ts-ignore - Supabase types are auto-generated
     const { data: profile, error: profileError } = await supabase
       .from('users')
       .update({
