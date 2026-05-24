@@ -152,17 +152,23 @@ export interface Period {
 // User & Organization Types
 // -----------------------------------------------------------------------------
 
-export interface User extends BaseEntity {
+export interface User {
+  id: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  createdBy?: string;
+  updatedBy?: string;
+  isDeleted?: boolean;
   username: string;
   email: string;
   firstName: string;
   lastName: string;
   role: UserRole;
-  organizationId: string;
+  organizationId?: string;
   isActive: boolean;
   lastLoginAt?: Date;
   mfaEnabled: boolean;
-  permissions: string[];
+  permissions?: string[];
 }
 
 export interface Organization extends BaseEntity {

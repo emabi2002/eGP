@@ -2,7 +2,7 @@
 
 import { useEffect, useState, createContext, useContext, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { getSupabaseClient } from '@/lib/supabase/client';
+import { getSupabaseClient, isDemoModeEnabled } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/auth-store';
 import type { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import type { UserRole } from '@/types';
@@ -12,6 +12,7 @@ interface AuthContextType {
   session: Session | null;
   isLoading: boolean;
   signOut: () => Promise<void>;
+  isDemoMode: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,6 +22,21 @@ const publicRoutes = ['/login', '/signup', '/forgot-password', '/reset-password'
 
 // Check if demo mode is enabled
 const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
+
+// Demo user for when running without Supabase
+const DEMO_USER = {
+  id: 'demo-user-001',
+  email: 'demo@egp.gov.pg',
+  username: 'demo_admin',
+  firstName: 'Demo',
+  lastName: 'Administrator',
+  role: 'SYSTEM_ADMIN' as UserRole,
+  organizationId: 'demo-org-001',
+  isActive: true,
+  mfaEnabled: false,
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+};
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -32,8 +48,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { login, logout } = useAuthStore();
 
   const handleSignOut = useCallback(async () => {
-    const supabase = getSupabaseClient();
-    await supabase.auth.signOut();
+    if (!isDemoModeEnabled()) {
+      const supabase = getSupabaseClient();
+      await supabase.auth.signOut();
+    }
     logout();
     setUser(null);
     setSession(null);
@@ -41,11 +59,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [logout, router]);
 
   useEffect(() => {
-    const supabase = getSupabaseClient();
-
-    // Get initial session
     const initializeAuth = async () => {
       try {
+        // In demo mode, automatically log in as demo user
+        if (isDemoModeEnabled()) {
+          login(DEMO_USER, 'demo-token');
+          setIsLoading(false);
+          return;
+        }
+
+        const supabase = getSupabaseClient();
+
+        // Get initial session
         const { data: { session: initialSession } } = await supabase.auth.getSession();
 
         if (initialSession?.user) {
@@ -72,18 +97,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             },
             initialSession.access_token
           );
-        } else if (!isDemoMode && !publicRoutes.includes(pathname)) {
+        } else if (!publicRoutes.includes(pathname)) {
           // Redirect to login if not authenticated and not on public route
           router.push('/login');
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
+        // In case of error, enable demo mode fallback
+        if (isDemoModeEnabled()) {
+          login(DEMO_USER, 'demo-token');
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
     initializeAuth();
+
+    // Skip auth listener in demo mode
+    if (isDemoModeEnabled()) {
+      return;
+    }
+
+    const supabase = getSupabaseClient();
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -131,7 +167,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [login, logout, pathname, router]);
 
   return (
-    <AuthContext.Provider value={{ user, session, isLoading, signOut: handleSignOut }}>
+    <AuthContext.Provider value={{ user, session, isLoading, signOut: handleSignOut, isDemoMode }}>
       {children}
     </AuthContext.Provider>
   );

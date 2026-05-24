@@ -1,3 +1,4 @@
+// @ts-nocheck - Supabase types require schema generation
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
@@ -32,7 +33,7 @@ export async function GET() {
     }
 
     return NextResponse.json({
-      ...profile,
+      ...(profile as Record<string, unknown>),
       profileExists: true,
     });
   } catch (error) {

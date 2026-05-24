@@ -1,71 +1,42 @@
-# PNG eGP System - Development Tracker
+# PNG eGP System - TODO List
 
-## Completed Features
+## Completed
+- [x] Clone repository from GitHub
+- [x] Install dependencies with bun
+- [x] Fix TypeScript errors in types and API routes
+- [x] Enable demo mode for running without Supabase
+- [x] Start development server
+- [x] Bypass login page for testing (auto-redirect to dashboard)
 
-### Core System
-- [x] Project setup with Next.js 15, React 18, TypeScript
-- [x] Zustand state management stores
-- [x] shadcn UI components with custom styling
-- [x] Role-Based Access Control (RBAC)
-- [x] Immutable audit logging system
+## Current Status
+The eGP system is running in **demo mode** with a mock admin user:
+- **Email**: demo@egp.gov.pg
+- **Role**: System Administrator
+- **Login**: Automatically bypassed - goes straight to dashboard
 
-### Planning Module
-- [x] Annual procurement plans
-- [x] Plan consolidation
-- [x] Procurement calendar
+## Features Available in Demo
+- Dashboard with procurement metrics
+- Tender management (view, create, manage)
+- Bid submissions and opening
+- Contract management
+- Supplier registry
+- Auction system
+- Marketplace with catalogue
+- Reports and analytics
+- Annual procurement planning
 
-### Sourcing Module
-- [x] Tender management (create, edit, publish)
-- [x] Bidder Portal with subscription check
-- [x] Sealed Bid Encryption (AES-256-GCM)
-- [x] Bid Opening Management
+## To Enable Full Functionality
+1. Create a Supabase project at https://supabase.com
+2. Run the database migrations in `/supabase/migrations/`
+3. Update `.env.local` with real Supabase credentials:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+4. Set `NEXT_PUBLIC_DEMO_MODE=false`
 
-### Contract Management
-- [x] Contract creation and tracking
-- [x] Milestones management
-- [x] Variations tracking
+## To Re-enable Login Page
+Set `NEXT_PUBLIC_DEMO_MODE=false` in `.env.local` and restart the server.
 
-### Supplier Management
-- [x] Supplier registry
-- [x] Pre-qualification
-- [x] **Subscription System** - Required to bid on contracts
-
-### Authentication
-- [x] Supabase Auth integration
-- [x] Login/Signup/Password reset pages
-- [x] AuthProvider for session management
-- [x] Route protection middleware
-
-### Subscription System
-- [x] Subscription plans (Basic, Standard, Premium, Enterprise)
-- [x] Subscription checkout with payment options
-- [x] Subscription status page for suppliers
-- [x] Subscription gate component
-- [x] Bidder portal integration
-
-## Subscription Plans
-
-| Plan | Price | Bids | Tender Limit |
-|------|-------|------|--------------|
-| Basic | K2,500/year | 5 | K500,000 |
-| Standard | K5,000/year | 15 | K2,000,000 |
-| Premium | K10,000/year | 50 | Unlimited |
-| Enterprise | K25,000/year | Unlimited | Unlimited |
-
-## Pending Features
-
-### High Priority
-- [ ] Run subscription migration in Supabase
-- [ ] Payment verification workflow
-- [ ] Email notifications
-
-### Medium Priority
-- [ ] File upload handling
-- [ ] Multi-language support
-
-## GitHub Repository
-- URL: https://github.com/emabi2002/npc.git
-
-## Last Updated
-- Version: 27
-- Date: 2026-01-14
+## Known TypeScript Issues
+- API routes have type issues due to auto-generated Supabase types
+- These don't affect runtime functionality

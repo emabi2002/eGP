@@ -1,6 +1,9 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
+// Check if demo mode is enabled
+const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
+
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
     request: {
@@ -8,9 +11,44 @@ export async function middleware(request: NextRequest) {
     },
   });
 
+  // Define public routes that don't require authentication
+  const publicRoutes = [
+    '/login',
+    '/signup',
+    '/forgot-password',
+    '/reset-password',
+    '/auth/callback',
+    '/portal',
+    '/portal/notices',
+    '/portal/open-data',
+    '/tenders/bidder-portal', // Public tender browsing
+    '/api/test-connection', // Allow connection testing
+  ];
+
+  // Check if the current path is a public route
+  const isPublicRoute = publicRoutes.some(route =>
+    request.nextUrl.pathname === route ||
+    request.nextUrl.pathname.startsWith('/portal/') ||
+    request.nextUrl.pathname.startsWith('/auth/')
+  );
+
+  // In demo mode, allow all routes without authentication
+  if (isDemoMode) {
+    return response;
+  }
+
+  // Only create Supabase client when not in demo mode and credentials exist
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey || supabaseUrl.includes('placeholder')) {
+    // Allow access without auth if Supabase isn't configured
+    return response;
+  }
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         get(name: string) {
@@ -57,33 +95,8 @@ export async function middleware(request: NextRequest) {
   // Refresh session if expired
   const { data: { session } } = await supabase.auth.getSession();
 
-  // Define public routes that don't require authentication
-  const publicRoutes = [
-    '/login',
-    '/signup',
-    '/forgot-password',
-    '/reset-password',
-    '/auth/callback',
-    '/portal',
-    '/portal/notices',
-    '/portal/open-data',
-    '/tenders/bidder-portal', // Public tender browsing
-    '/api/test-connection', // Allow connection testing
-  ];
-
-  // Check if the current path is a public route
-  const isPublicRoute = publicRoutes.some(route =>
-    request.nextUrl.pathname === route ||
-    request.nextUrl.pathname.startsWith('/portal/') ||
-    request.nextUrl.pathname.startsWith('/auth/')
-  );
-
-  // Check if demo mode is enabled
-  const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
-
   // If no session and trying to access protected route, redirect to login
-  // Only enforce auth when demo mode is disabled
-  if (!isDemoMode && !session && !isPublicRoute) {
+  if (!session && !isPublicRoute) {
     const redirectUrl = new URL('/login', request.url);
     redirectUrl.searchParams.set('redirectTo', request.nextUrl.pathname);
     return NextResponse.redirect(redirectUrl);
